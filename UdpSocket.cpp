@@ -48,7 +48,7 @@ void UdpSocket::recvNetJson()
         this->readDatagram(msg.data(), msg.size(), &sender, &senderPort);
         QJsonObject obj = QJsonDocument::fromJson(QByteArray::fromBase64(msg)).object();
         obj.insert("sender",sender.toString());
-        qDebug() << "rcev" << obj;
+        qDebug() << "recv" << obj;
         recv_queue.enqueue(obj);
     }
 }
@@ -66,6 +66,7 @@ void UdpSocket::transmitJson()
         QHostAddress hostAddr(obj.value("sendto").toString());
         this->writeDatagram(msg.toBase64(),hostAddr,txPort);
         this->waitForBytesWritten();
+        qDebug() << "send" << obj;
     }
     if (!recv_queue.isEmpty())
         emit sendJson(recv_queue.dequeue());

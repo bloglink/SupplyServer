@@ -274,18 +274,18 @@ void SupplyServer::loginJson(QJsonObject obj)
     QSqlQuery query(db);
     QString user_name = obj.value("user_name").toString();
     QString user_pass = obj.value("user_pass").toString();
-    bool error = true;
+    bool logs_stat = false;
     query.prepare("select user_pass from erp_users where user_name==:user_name");
     query.bindValue(":user_name",user_name);
     query.exec();
     if (query.next()) {//将最新的操作记录返回
         if (user_pass == query.value(0).toString())
-            error = false;
+            logs_stat = true;
     }
     QJsonObject send_obj;
     send_obj.insert("sendto",obj.value("sender").toString());
     send_obj.insert("logs_cmmd","erp_login");
-    send_obj.insert("error",error);
+    send_obj.insert("logs_stat",logs_stat);
 
     sendJson(send_obj);
 }
@@ -293,6 +293,7 @@ void SupplyServer::loginJson(QJsonObject obj)
 void SupplyServer::rolesJson(QJsonObject obj)
 {
     QSqlQuery query(db);
+    QJsonObject send_obj;
 
     qint64 logs_guid = id.getId();
     qint64 logs_sign = obj.value("logs_sign").toDouble();
@@ -300,12 +301,11 @@ void SupplyServer::rolesJson(QJsonObject obj)
 
     switch (logs_sign) {
     case 0://查询
-        logs_sign = obj.value("logs_sign").toDouble();
+        logs_guid = obj.value("logs_guid").toDouble();
         query.prepare("select * from erp_roles where logs_guid>:logs_guid");
         query.bindValue(":logs_guid",logs_guid);
         query.exec();
         while (query.next()) {//将最新的操作记录返回
-            QJsonObject send_obj;
             send_obj.insert("sendto",obj.value("sender").toString());
             send_obj.insert("logs_cmmd","erp_roles");
             send_obj.insert("tabs_guid",query.value(0).toDouble());
@@ -315,12 +315,13 @@ void SupplyServer::rolesJson(QJsonObject obj)
             send_obj.insert("role_mark",query.value(4).toString());
             sendJson(send_obj);
         }
+        qDebug() << "0";
         return;
         break;
     case 1://增加
+        tabs_guid = logs_guid;
     case 2://删除只作更改
     case 3://修改
-        tabs_guid = logs_guid;
         query.prepare("replace into erp_roles values(?,?,?,?,?)");
         query.bindValue(0,tabs_guid);
         query.bindValue(1,logs_guid);
@@ -339,6 +340,11 @@ void SupplyServer::rolesJson(QJsonObject obj)
     query.bindValue(3,obj.value("role_name").toString());
     query.bindValue(4,obj.value("role_mark").toString());
     query.exec();
+
+    send_obj.insert("sendto",obj.value("sender").toString());
+    send_obj.insert("logs_cmmd","erp_roles");
+    send_obj.insert("logs_sign",0);
+    sendJson(send_obj);
 }
 
 void SupplyServer::usersJson(QJsonObject obj)
