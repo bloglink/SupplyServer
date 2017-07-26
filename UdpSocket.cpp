@@ -47,11 +47,6 @@ void UdpSocket::recvNetJson()
         quint16 senderPort;
         this->readDatagram(msg.data(), msg.size(), &sender, &senderPort);
         QJsonObject obj = QJsonDocument::fromJson(QByteArray::fromBase64(msg)).object();
-        QString sendto = obj.value("sendto").toString();
-        if (!sendto.isEmpty() && sendto != txAddr.toString())//不是发给自己的,返回
-            return;
-        if (sender == txAddr && obj.value("logs_sign").toInt() == 0)//自己发的查询,不处理;启动时出现
-            return;
         obj.insert("sender",sender.toString());
         qDebug() << "rcev" << obj;
         recv_queue.enqueue(obj);
@@ -67,18 +62,10 @@ void UdpSocket::transmitJson()
 {
     if (!send_queue.isEmpty()) {
         QJsonObject obj = send_queue.dequeue();
-        if (obj.value("logs_guid").toDouble() == 0)//未定义记录ID,添加记录ID
-            obj.insert("logs_guid",qint64(guid.getId()));
-
         QByteArray msg = QJsonDocument(obj).toJson();
-        if (obj.value("sendto").toString().isEmpty()) {//未定义接收者,则发广播
-            this->writeDatagram(msg.toBase64(),QHostAddress::Broadcast,txPort);
-            this->waitForBytesWritten();
-        } else {
-            QHostAddress hostAddr(obj.value("sendto").toString());
-            this->writeDatagram(msg.toBase64(),hostAddr,txPort);
-            this->waitForBytesWritten();
-        }
+        QHostAddress hostAddr(obj.value("sendto").toString());
+        this->writeDatagram(msg.toBase64(),hostAddr,txPort);
+        this->waitForBytesWritten();
     }
     if (!recv_queue.isEmpty())
         emit sendJson(recv_queue.dequeue());

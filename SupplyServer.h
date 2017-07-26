@@ -20,7 +20,7 @@ signals:
 public:
     SupplyServer(QWidget *parent = 0);
     ~SupplyServer();
-private:
+private slots:
     void initUdp();
     void initSql();
     void recvNetJson(QJsonObject obj);
@@ -31,7 +31,7 @@ private:
     void custsJson(QJsonObject obj);
     void orderJson(QJsonObject obj);
     void prodsJson(QJsonObject obj);
-
+private:
     Snowflake id;
     UdpSocket udp;
     QSqlDatabase db;
