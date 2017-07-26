@@ -11,6 +11,21 @@
 #include "UdpSocket.h"
 #include "Snowflake.h"
 
+#define ORDER_ID 0
+#define ORDER_GUID 1
+#define ORDER_SIGN 2
+#define ORDER_NUMB 3
+#define ORDER_DATE 4
+#define ORDER_AREA 5
+#define ORDER_SALE 6
+#define ORDER_CUST 7
+#define ORDER_VIEW 8
+#define ORDER_QUAN 9
+#define ORDER_DEAD 10
+#define ORDER_PROD 11
+#define ORDER_STCK 12
+#define ORDER_DNUM 13
+
 class SupplyServer : public QWidget
 {
     Q_OBJECT

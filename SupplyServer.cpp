@@ -125,41 +125,41 @@ void SupplyServer::initSql()
     cmd += "cust_area text)";
     query.exec(cmd);
 
-    query.exec("drop table erp_orders");
-    query.exec("drop table erp_orders_log");
+    query.exec("drop table erp_order");
+    query.exec("drop table erp_order_log");
 
-    cmd = "create table if not exists erp_orders(";
+    cmd = "create table if not exists erp_order(";
     cmd += "id integer primary key,";
     cmd += "logs_guid interger,";
     cmd += "logs_sign interger,";
     cmd += "order_numb text,";//订单编号
     cmd += "order_date text,";//订单日期
-    cmd += "order_view text,";//评审编号
-    cmd += "order_cust text,";//客户名称
-    cmd += "order_sale text,";//销售经理
     cmd += "order_area text,";//所属区域
-    cmd += "order_dead text,";//交货日期
+    cmd += "order_sale text,";//销售经理
+    cmd += "order_cust text,";//客户名称
+    cmd += "order_view text,";//评审编号
     cmd += "order_quan text,";//订货数量
+    cmd += "order_dead text,";//交货日期
     cmd += "order_prod text,";//在产数量
     cmd += "order_stck text,";//入库数量
     cmd += "order_dnum text)";//发货数量
     query.exec(cmd);
 
-    cmd = "create table if not exists erp_orders_log(";
+    cmd = "create table if not exists erp_order_log(";
     cmd += "id integer primary key,";
     cmd += "logs_sign integer,";
     cmd += "tabs_guid integer,";
-    cmd += "order_numb text,";
-    cmd += "order_date text,";
-    cmd += "order_view text,";
-    cmd += "order_cust text,";
-    cmd += "order_sale text,";
-    cmd += "order_area text,";
-    cmd += "order_dead text,";
-    cmd += "order_quan text,";
-    cmd += "order_prod text,";
-    cmd += "order_stck text,";
-    cmd += "order_dnum text)";
+    cmd += "order_numb text,";//订单编号
+    cmd += "order_date text,";//订单日期
+    cmd += "order_area text,";//所属区域
+    cmd += "order_sale text,";//销售经理
+    cmd += "order_cust text,";//客户名称
+    cmd += "order_view text,";//评审编号
+    cmd += "order_quan text,";//订货数量
+    cmd += "order_dead text,";//交货日期
+    cmd += "order_prod text,";//在产数量
+    cmd += "order_stck text,";//入库数量
+    cmd += "order_dnum text)";//发货数量
     query.exec(cmd);
 
     query.exec("drop table erp_prods");
@@ -525,7 +525,86 @@ void SupplyServer::custsJson(QJsonObject obj)
 
 void SupplyServer::orderJson(QJsonObject obj)
 {
+    QSqlQuery query(db);
+    QJsonObject send_obj;
 
+    qint64 logs_guid = id.getId();
+    qint64 logs_sign = obj.value("logs_sign").toDouble();
+    qint64 tabs_guid = obj.value("tabs_guid").toDouble();
+
+    switch (logs_sign) {
+    case 0://查询
+        logs_guid = obj.value("logs_guid").toDouble();
+        query.prepare("select * from erp_order where logs_guid>:logs_guid");
+        query.bindValue(":logs_guid",logs_guid);
+        query.exec();
+        while (query.next()) {//将最新的操作记录返回
+            send_obj.insert("sendto",obj.value("sender").toString());
+            send_obj.insert("logs_cmmd","erp_order");
+            send_obj.insert("tabs_guid",query.value(ORDER_ID).toDouble());
+            send_obj.insert("logs_guid",query.value(ORDER_GUID).toDouble());
+            send_obj.insert("logs_sign",query.value(ORDER_SIGN).toDouble());
+
+            send_obj.insert("order_numb",query.value(ORDER_NUMB).toString());
+            send_obj.insert("order_date",query.value(ORDER_DATE).toString());
+            send_obj.insert("order_view",query.value(ORDER_VIEW).toString());
+            send_obj.insert("order_cust",query.value(ORDER_CUST).toString());
+            send_obj.insert("order_sale",query.value(ORDER_SALE).toString());
+            send_obj.insert("order_area",query.value(ORDER_AREA).toString());
+            send_obj.insert("order_dead",query.value(ORDER_DEAD).toString());
+            send_obj.insert("order_quan",query.value(ORDER_QUAN).toString());
+            send_obj.insert("order_prod",query.value(ORDER_PROD).toString());
+            send_obj.insert("order_stck",query.value(ORDER_STCK).toString());
+            send_obj.insert("order_dnum",query.value(ORDER_DNUM).toString());
+            emit sendJson(send_obj);
+        }
+        return;
+        break;
+    case 1://增加
+        tabs_guid = logs_guid;
+    case 2://删除
+    case 3://修改
+        query.prepare("replace into erp_order values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+        query.bindValue(ORDER_ID,tabs_guid);
+        query.bindValue(ORDER_GUID,logs_guid);
+        query.bindValue(ORDER_SIGN,logs_sign);
+        query.bindValue(ORDER_NUMB,obj.value("order_numb").toString());
+        query.bindValue(ORDER_DATE,obj.value("order_date").toString());
+        query.bindValue(ORDER_VIEW,obj.value("order_view").toString());
+        query.bindValue(ORDER_CUST,obj.value("order_cust").toString());
+        query.bindValue(ORDER_SALE,obj.value("order_sale").toString());
+        query.bindValue(ORDER_AREA,obj.value("order_area").toString());
+        query.bindValue(ORDER_DEAD,obj.value("order_dead").toString());
+        query.bindValue(ORDER_QUAN,obj.value("order_quan").toString());
+        query.bindValue(ORDER_PROD,obj.value("order_prod").toString());
+        query.bindValue(ORDER_STCK,obj.value("order_stck").toString());
+        query.bindValue(ORDER_DNUM,obj.value("order_dnum").toString());
+        query.exec();
+        break;
+    default:
+        break;
+    }
+    query.prepare("replace into erp_order_log values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+    query.bindValue(0,logs_guid);
+    query.bindValue(1,logs_sign);
+    query.bindValue(2,tabs_guid);
+    query.bindValue(ORDER_NUMB,obj.value("order_numb").toString());
+    query.bindValue(ORDER_DATE,obj.value("order_date").toString());
+    query.bindValue(ORDER_VIEW,obj.value("order_view").toString());
+    query.bindValue(ORDER_CUST,obj.value("order_cust").toString());
+    query.bindValue(ORDER_SALE,obj.value("order_sale").toString());
+    query.bindValue(ORDER_AREA,obj.value("order_area").toString());
+    query.bindValue(ORDER_DEAD,obj.value("order_dead").toString());
+    query.bindValue(ORDER_QUAN,obj.value("order_quan").toString());
+    query.bindValue(ORDER_PROD,obj.value("order_prod").toString());
+    query.bindValue(ORDER_STCK,obj.value("order_stck").toString());
+    query.bindValue(ORDER_DNUM,obj.value("order_dnum").toString());
+    query.exec();
+
+    send_obj.insert("sendto",obj.value("sender").toString());
+    send_obj.insert("logs_cmmd","erp_order");
+    send_obj.insert("logs_sign",0);
+    sendJson(send_obj);
 }
 
 void SupplyServer::prodsJson(QJsonObject obj)
