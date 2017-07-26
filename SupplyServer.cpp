@@ -315,7 +315,6 @@ void SupplyServer::rolesJson(QJsonObject obj)
             send_obj.insert("role_mark",query.value(4).toString());
             sendJson(send_obj);
         }
-        qDebug() << "0";
         return;
         break;
     case 1://增加
@@ -349,12 +348,120 @@ void SupplyServer::rolesJson(QJsonObject obj)
 
 void SupplyServer::usersJson(QJsonObject obj)
 {
+    QSqlQuery query(db);
+    QJsonObject send_obj;
 
+    qint64 logs_guid = id.getId();
+    qint64 logs_sign = obj.value("logs_sign").toDouble();
+    qint64 tabs_guid = obj.value("tabs_guid").toDouble();
+
+    switch (logs_sign) {
+    case 0://查询
+        logs_guid = obj.value("logs_guid").toDouble();
+        query.prepare("select * from erp_users where logs_guid>:logs_guid");
+        query.bindValue(":logs_guid",logs_guid);
+        query.exec();
+        while (query.next()) {//将最新的操作记录返回
+            send_obj.insert("sendto",obj.value("sender").toString());
+            send_obj.insert("logs_cmmd","erp_users");
+            send_obj.insert("tabs_guid",query.value(0).toDouble());
+            send_obj.insert("logs_guid",query.value(1).toDouble());
+            send_obj.insert("logs_sign",query.value(2).toDouble());
+            send_obj.insert("user_name",query.value(3).toString());
+            send_obj.insert("user_pass",query.value(4).toString());
+            send_obj.insert("user_role",query.value(5).toString());
+            send_obj.insert("user_date",query.value(6).toString());
+            emit sendJson(send_obj);
+        }
+        return;
+        break;
+    case 1://增加
+        tabs_guid = logs_guid;
+    case 2://删除
+    case 3://修改
+        query.prepare("replace into erp_users values(?,?,?,?,?,?,?)");
+        query.bindValue(0,tabs_guid);
+        query.bindValue(1,logs_guid);
+        query.bindValue(2,logs_sign);
+        query.bindValue(3,obj.value("user_name").toString());
+        query.bindValue(4,obj.value("user_pass").toString());
+        query.bindValue(5,obj.value("user_role").toString());
+        query.bindValue(6,obj.value("user_date").toString());
+        query.exec();
+        break;
+    default:
+        break;
+    }
+    query.prepare("insert into erp_users_log values(?,?,?,?,?,?,?)");
+    query.bindValue(0,logs_guid);
+    query.bindValue(1,logs_sign);
+    query.bindValue(2,tabs_guid);
+    query.bindValue(3,obj.value("user_name").toString());
+    query.bindValue(4,obj.value("user_pass").toString());
+    query.bindValue(5,obj.value("user_role").toString());
+    query.bindValue(6,obj.value("user_date").toString());
+    query.exec();
+
+    send_obj.insert("sendto",obj.value("sender").toString());
+    send_obj.insert("logs_cmmd","erp_users");
+    send_obj.insert("logs_sign",0);
+    sendJson(send_obj);
 }
 
 void SupplyServer::salesJson(QJsonObject obj)
 {
+    QSqlQuery query(db);
+    QJsonObject send_obj;
 
+    qint64 logs_guid = id.getId();
+    qint64 logs_sign = obj.value("logs_sign").toDouble();
+    qint64 tabs_guid = obj.value("tabs_guid").toDouble();
+
+    switch (logs_sign) {
+    case 0://查询
+        logs_guid = obj.value("logs_guid").toDouble();
+        query.prepare("select * from erp_sales where logs_guid>:logs_guid");
+        query.bindValue(":logs_guid",logs_guid);
+        query.exec();
+        while (query.next()) {//将最新的操作记录返回
+            send_obj.insert("sendto",obj.value("sender").toString());
+            send_obj.insert("logs_cmmd","erp_sales");
+            send_obj.insert("tabs_guid",query.value(0).toDouble());
+            send_obj.insert("logs_guid",query.value(1).toDouble());
+            send_obj.insert("logs_sign",query.value(2).toDouble());
+            send_obj.insert("sale_name",query.value(3).toString());
+            send_obj.insert("sale_area",query.value(4).toString());
+            emit sendJson(send_obj);
+        }
+        return;
+        break;
+    case 1://增加
+        tabs_guid = logs_guid;
+    case 2://删除
+    case 3://修改
+        query.prepare("replace into erp_sales values(?,?,?,?,?)");
+        query.bindValue(0,tabs_guid);
+        query.bindValue(1,logs_guid);
+        query.bindValue(2,logs_sign);
+        query.bindValue(3,obj.value("sale_name").toString());
+        query.bindValue(4,obj.value("sale_area").toString());
+        query.exec();
+        break;
+    default:
+        break;
+    }
+    query.prepare("insert into erp_sales_log values(?,?,?,?,?)");
+    query.bindValue(0,logs_guid);
+    query.bindValue(1,logs_sign);
+    query.bindValue(2,tabs_guid);
+    query.bindValue(3,obj.value("sale_name").toString());
+    query.bindValue(4,obj.value("sale_area").toString());
+    query.exec();
+
+    send_obj.insert("sendto",obj.value("sender").toString());
+    send_obj.insert("logs_cmmd","erp_sales");
+    send_obj.insert("logs_sign",0);
+    sendJson(send_obj);
 }
 
 void SupplyServer::custsJson(QJsonObject obj)
