@@ -466,7 +466,61 @@ void SupplyServer::salesJson(QJsonObject obj)
 
 void SupplyServer::custsJson(QJsonObject obj)
 {
+    QSqlQuery query(db);
+    QJsonObject send_obj;
 
+    qint64 logs_guid = id.getId();
+    qint64 logs_sign = obj.value("logs_sign").toDouble();
+    qint64 tabs_guid = obj.value("tabs_guid").toDouble();
+
+    switch (logs_sign) {
+    case 0://查询
+        logs_guid = obj.value("logs_guid").toDouble();
+        query.prepare("select * from erp_custs where logs_guid>:logs_guid");
+        query.bindValue(":logs_guid",logs_guid);
+        query.exec();
+        while (query.next()) {//将最新的操作记录返回
+            send_obj.insert("sendto",obj.value("sender").toString());
+            send_obj.insert("logs_cmmd","erp_custs");
+            send_obj.insert("tabs_guid",query.value(0).toDouble());
+            send_obj.insert("logs_guid",query.value(1).toDouble());
+            send_obj.insert("logs_sign",query.value(2).toDouble());
+            send_obj.insert("cust_name",query.value(3).toString());
+            send_obj.insert("cust_sale",query.value(4).toString());
+            send_obj.insert("cust_area",query.value(5).toString());
+            emit sendJson(send_obj);
+        }
+        return;
+        break;
+    case 1://增加
+        tabs_guid = logs_guid;
+    case 2://删除
+    case 3://修改
+        query.prepare("replace into erp_custs values(?,?,?,?,?,?)");
+        query.bindValue(0,tabs_guid);
+        query.bindValue(1,logs_guid);
+        query.bindValue(2,logs_sign);
+        query.bindValue(3,obj.value("cust_name").toString());
+        query.bindValue(4,obj.value("cust_sale").toString());
+        query.bindValue(5,obj.value("cust_area").toString());
+        query.exec();
+        break;
+    default:
+        break;
+    }
+    query.prepare("insert into erp_custs_log values(?,?,?,?,?,?)");
+    query.bindValue(0,logs_guid);
+    query.bindValue(1,logs_sign);
+    query.bindValue(2,tabs_guid);
+    query.bindValue(3,obj.value("cust_name").toString());
+    query.bindValue(4,obj.value("cust_sale").toString());
+    query.bindValue(5,obj.value("cust_area").toString());
+    query.exec();
+
+    send_obj.insert("sendto",obj.value("sender").toString());
+    send_obj.insert("logs_cmmd","erp_custs");
+    send_obj.insert("logs_sign",0);
+    sendJson(send_obj);
 }
 
 void SupplyServer::orderJson(QJsonObject obj)
