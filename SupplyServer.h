@@ -22,9 +22,11 @@
 #define ORDER_VIEW 8
 #define ORDER_QUAN 9
 #define ORDER_DEAD 10
-#define ORDER_PROD 11
-#define ORDER_STCK 12
-#define ORDER_DNUM 13
+#define ORDER_MARK 11
+#define ORDER_PROD 12
+#define ORDER_STCK 13
+#define ORDER_LNUM 14
+#define ORDER_DNUM 15
 
 class SupplyServer : public QWidget
 {

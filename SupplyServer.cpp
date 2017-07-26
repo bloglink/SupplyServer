@@ -140,8 +140,10 @@ void SupplyServer::initSql()
     cmd += "order_view text,";//评审编号
     cmd += "order_quan text,";//订货数量
     cmd += "order_dead text,";//交货日期
+    cmd += "order_mark text,";//备注内容
     cmd += "order_prod text,";//在产数量
     cmd += "order_stck text,";//入库数量
+    cmd += "order_lnum text,";//未发数量
     cmd += "order_dnum text)";//发货数量
     query.exec(cmd);
 
@@ -157,8 +159,10 @@ void SupplyServer::initSql()
     cmd += "order_view text,";//评审编号
     cmd += "order_quan text,";//订货数量
     cmd += "order_dead text,";//交货日期
+    cmd += "order_mark text,";//备注内容
     cmd += "order_prod text,";//在产数量
     cmd += "order_stck text,";//入库数量
+    cmd += "order_lnum text,";//未发数量
     cmd += "order_dnum text)";//发货数量
     query.exec(cmd);
 
@@ -544,7 +548,6 @@ void SupplyServer::orderJson(QJsonObject obj)
             send_obj.insert("tabs_guid",query.value(ORDER_ID).toDouble());
             send_obj.insert("logs_guid",query.value(ORDER_GUID).toDouble());
             send_obj.insert("logs_sign",query.value(ORDER_SIGN).toDouble());
-
             send_obj.insert("order_numb",query.value(ORDER_NUMB).toString());
             send_obj.insert("order_date",query.value(ORDER_DATE).toString());
             send_obj.insert("order_view",query.value(ORDER_VIEW).toString());
@@ -553,8 +556,10 @@ void SupplyServer::orderJson(QJsonObject obj)
             send_obj.insert("order_area",query.value(ORDER_AREA).toString());
             send_obj.insert("order_dead",query.value(ORDER_DEAD).toString());
             send_obj.insert("order_quan",query.value(ORDER_QUAN).toString());
+            send_obj.insert("order_mark",query.value(ORDER_MARK).toString());
             send_obj.insert("order_prod",query.value(ORDER_PROD).toString());
             send_obj.insert("order_stck",query.value(ORDER_STCK).toString());
+            send_obj.insert("order_lnum",query.value(ORDER_LNUM).toString());
             send_obj.insert("order_dnum",query.value(ORDER_DNUM).toString());
             emit sendJson(send_obj);
         }
@@ -564,7 +569,7 @@ void SupplyServer::orderJson(QJsonObject obj)
         tabs_guid = logs_guid;
     case 2://删除
     case 3://修改
-        query.prepare("replace into erp_order values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+        query.prepare("replace into erp_order values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
         query.bindValue(ORDER_ID,tabs_guid);
         query.bindValue(ORDER_GUID,logs_guid);
         query.bindValue(ORDER_SIGN,logs_sign);
@@ -576,15 +581,17 @@ void SupplyServer::orderJson(QJsonObject obj)
         query.bindValue(ORDER_AREA,obj.value("order_area").toString());
         query.bindValue(ORDER_DEAD,obj.value("order_dead").toString());
         query.bindValue(ORDER_QUAN,obj.value("order_quan").toString());
+        query.bindValue(ORDER_MARK,obj.value("order_mark").toString());
         query.bindValue(ORDER_PROD,obj.value("order_prod").toString());
         query.bindValue(ORDER_STCK,obj.value("order_stck").toString());
+        query.bindValue(ORDER_LNUM,obj.value("order_lnum").toString());
         query.bindValue(ORDER_DNUM,obj.value("order_dnum").toString());
         query.exec();
         break;
     default:
         break;
     }
-    query.prepare("replace into erp_order_log values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+    query.prepare("replace into erp_order_log values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
     query.bindValue(0,logs_guid);
     query.bindValue(1,logs_sign);
     query.bindValue(2,tabs_guid);
@@ -596,8 +603,10 @@ void SupplyServer::orderJson(QJsonObject obj)
     query.bindValue(ORDER_AREA,obj.value("order_area").toString());
     query.bindValue(ORDER_DEAD,obj.value("order_dead").toString());
     query.bindValue(ORDER_QUAN,obj.value("order_quan").toString());
+    query.bindValue(ORDER_MARK,obj.value("order_mark").toString());
     query.bindValue(ORDER_PROD,obj.value("order_prod").toString());
     query.bindValue(ORDER_STCK,obj.value("order_stck").toString());
+    query.bindValue(ORDER_LNUM,obj.value("order_lnum").toString());
     query.bindValue(ORDER_DNUM,obj.value("order_dnum").toString());
     query.exec();
 
