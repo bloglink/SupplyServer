@@ -33,8 +33,8 @@ void SupplyServer::initSql()
     QSqlQuery query(db);
     QString cmd;
 
-    query.exec("drop table erp_roles");
-    query.exec("drop table erp_roles_log");
+    //    query.exec("drop table erp_roles");
+    //    query.exec("drop table erp_roles_log");
 
     cmd = "create table if not exists erp_roles(";//创建角色表
     cmd += "id integer primary key,";
@@ -52,8 +52,8 @@ void SupplyServer::initSql()
     cmd += "role_mark text)";
     query.exec(cmd);
 
-    query.exec("drop table erp_users");
-    query.exec("drop table erp_users_log");
+    //    query.exec("drop table erp_users");
+    //    query.exec("drop table erp_users_log");
 
     cmd = "create table if not exists erp_users(";//创建用户表
     cmd += "id integer primary key,";
@@ -75,15 +75,19 @@ void SupplyServer::initSql()
     cmd += "user_date text)";
     query.exec(cmd);
 
-    query.prepare("insert into erp_users values(?,?,?,?,?,?,?)");//加入管理员
-    query.bindValue(0,id.getId());
-    query.bindValue(1,id.getId());
-    query.bindValue(2,1);
-    query.bindValue(3,"admin");
-    query.bindValue(4,"");
-    query.bindValue(5,"管理");
-    query.bindValue(6,"2017-07-24");
-    query.exec();
+    query.exec("select count(id) from erp_users");
+    query.next();
+    if (query.value(0).toInt() == 0) {
+        query.prepare("insert into erp_users values(?,?,?,?,?,?,?)");//加入管理员
+        query.bindValue(0,id.getId());
+        query.bindValue(1,id.getId());
+        query.bindValue(2,1);
+        query.bindValue(3,"admin");
+        query.bindValue(4,"");
+        query.bindValue(5,"管理");
+        query.bindValue(6,"2017-07-24");
+        query.exec();
+    }
 
     query.exec("drop table erp_sales");
     query.exec("drop table erp_sales_log");
@@ -201,12 +205,13 @@ void SupplyServer::initSql()
     cmd += "logs_sign interger,";
     cmd += "prod_numb text,";//订单编号
     cmd += "prod_date text,";//订单日期
-    cmd += "prod_view text,";//评审编号
-    cmd += "prod_cust text,";//客户名称
-    cmd += "prod_sale text,";//销售名称
     cmd += "prod_area text,";//所属区域
-    cmd += "prod_dead text,";//交货日期
+    cmd += "prod_sale text,";//销售名称
+    cmd += "prod_cust text,";//客户名称
+    cmd += "prod_view text,";//评审编号
     cmd += "prod_need text,";//订货数量
+    cmd += "prod_dead text,";//交货日期
+    cmd += "prod_mark text,";//备注内容
     cmd += "prod_quan text,";//在产数量
     cmd += "prod_pnum text,";//生产单号
     cmd += "prod_type text,";//产品大类
@@ -221,22 +226,23 @@ void SupplyServer::initSql()
     cmd += "id integer primary key,";
     cmd += "logs_sign integer,";
     cmd += "tabs_guid integer,";
-    cmd += "prod_numb text,";
-    cmd += "prod_date text,";
-    cmd += "prod_view text,";
-    cmd += "prod_cust text,";
-    cmd += "prod_sale text,";
-    cmd += "prod_area text,";
-    cmd += "prod_dead text,";
-    cmd += "prod_need text,";
-    cmd += "prod_quan text,";
-    cmd += "prod_pnum text,";
-    cmd += "prod_type text,";
-    cmd += "prod_code text,";
-    cmd += "prod_name text,";
-    cmd += "prod_mode text,";
-    cmd += "prod_mnum text,";
-    cmd += "prod_stck text)";
+    cmd += "prod_numb text,";//订单编号
+    cmd += "prod_date text,";//订单日期
+    cmd += "prod_area text,";//所属区域
+    cmd += "prod_sale text,";//销售名称
+    cmd += "prod_cust text,";//客户名称
+    cmd += "prod_view text,";//评审编号
+    cmd += "prod_need text,";//订货数量
+    cmd += "prod_dead text,";//交货日期
+    cmd += "prod_mark text,";//备注内容
+    cmd += "prod_quan text,";//在产数量
+    cmd += "prod_pnum text,";//生产单号
+    cmd += "prod_type text,";//产品大类
+    cmd += "prod_code text,";//产品编号
+    cmd += "prod_name text,";//产品名称
+    cmd += "prod_mode text,";//产品规格
+    cmd += "prod_mnum text,";//仪表编号
+    cmd += "prod_stck text)";//入库标志
     query.exec(cmd);
 
     cmd = "create table if not exists erp_purchs(";
@@ -299,6 +305,8 @@ void SupplyServer::recvNetJson(QJsonObject obj)
         prodsJson(obj);
     if (cmd == "erp_sends")
         sendsJson(obj);
+    if (cmd == "erp_prods")
+        prodsJson(obj);
 }
 
 void SupplyServer::loginJson(QJsonObject obj)
