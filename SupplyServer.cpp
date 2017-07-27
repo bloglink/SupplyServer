@@ -166,6 +166,32 @@ void SupplyServer::initSql()
     cmd += "order_dnum text)";//发货数量
     query.exec(cmd);
 
+    query.exec("drop table erp_sends");
+    query.exec("drop table erp_sends_log");
+
+    cmd = "create table if not exists erp_sends(";
+    cmd += "id integer primary key,";
+    cmd += "logs_guid interger,";
+    cmd += "logs_sign interger,";
+    cmd += "send_numb text,";//订单单号
+    cmd += "send_view text,";//评审单号
+    cmd += "send_mode text,";//发货方式
+    cmd += "send_code text,";//货运单号
+    cmd += "send_prce text,";//运费
+    cmd += "send_mark text)";//货运单号
+    query.exec(cmd);
+
+    cmd = "create table if not exists erp_sends_log(";
+    cmd += "id integer primary key,";
+    cmd += "logs_sign integer,";
+    cmd += "tabs_guid integer,";
+    cmd += "send_numb text,";//订单单号
+    cmd += "send_view text,";//评审单号
+    cmd += "send_mode text,";//发货方式
+    cmd += "send_code text,";//货运单号
+    cmd += "send_prce text)";//运费
+    query.exec(cmd);
+
     query.exec("drop table erp_prods");
     query.exec("drop table erp_prods_log");
 
@@ -271,6 +297,8 @@ void SupplyServer::recvNetJson(QJsonObject obj)
         orderJson(obj);
     if (cmd == "erp_prods")
         prodsJson(obj);
+    if (cmd == "erp_sends")
+        sendsJson(obj);
 }
 
 void SupplyServer::loginJson(QJsonObject obj)
@@ -612,6 +640,74 @@ void SupplyServer::orderJson(QJsonObject obj)
 
     send_obj.insert("sendto",obj.value("sender").toString());
     send_obj.insert("logs_cmmd","erp_order");
+    send_obj.insert("logs_sign",0);
+    sendJson(send_obj);
+}
+
+void SupplyServer::sendsJson(QJsonObject obj)
+{
+    QSqlQuery query(db);
+    QJsonObject send_obj;
+
+    qint64 logs_guid = id.getId();
+    qint64 logs_sign = obj.value("logs_sign").toDouble();
+    qint64 tabs_guid = obj.value("tabs_guid").toDouble();
+
+    switch (logs_sign) {
+    case 0://查询
+        logs_guid = obj.value("logs_guid").toDouble();
+        query.prepare("select * from erp_sends where logs_guid>:logs_guid");
+        query.bindValue(":logs_guid",logs_guid);
+        query.exec();
+        while (query.next()) {//将最新的操作记录返回
+            send_obj.insert("sendto",obj.value("sender").toString());
+            send_obj.insert("logs_cmmd","erp_sends");
+            send_obj.insert("tabs_guid",query.value(SEND_ID).toDouble());
+            send_obj.insert("logs_guid",query.value(SEND_GUID).toDouble());
+            send_obj.insert("logs_sign",query.value(SEND_SIGN).toDouble());
+            send_obj.insert("send_numb",query.value(SEND_NUMB).toString());
+            send_obj.insert("send_view",query.value(SEND_VIEW).toString());
+            send_obj.insert("send_mode",query.value(SEND_MODE).toString());
+            send_obj.insert("send_code",query.value(SEND_CODE).toString());
+            send_obj.insert("send_prce",query.value(SEND_PRCE).toString());
+            send_obj.insert("send_mark",query.value(SEND_MARK).toString());
+            emit sendJson(send_obj);
+        }
+        return;
+        break;
+    case 1://增加
+        tabs_guid = logs_guid;
+    case 2://删除
+    case 3://修改
+        query.prepare("replace into erp_sends values(?,?,?,?,?,?,?,?,?)");
+        query.bindValue(SEND_ID,tabs_guid);
+        query.bindValue(SEND_GUID,logs_guid);
+        query.bindValue(SEND_SIGN,logs_sign);
+        query.bindValue(SEND_NUMB,obj.value("send_numb").toString());
+        query.bindValue(SEND_VIEW,obj.value("send_view").toString());
+        query.bindValue(SEND_MODE,obj.value("send_mode").toString());
+        query.bindValue(SEND_CODE,obj.value("send_code").toString());
+        query.bindValue(SEND_PRCE,obj.value("send_prce").toString());
+        query.bindValue(SEND_MARK,obj.value("send_mark").toString());
+        query.exec();
+        break;
+    default:
+        break;
+    }
+    query.prepare("replace into erp_sends_log values(?,?,?,?,?,?,?,?,?)");
+    query.bindValue(0,logs_guid);
+    query.bindValue(1,logs_sign);
+    query.bindValue(2,tabs_guid);
+    query.bindValue(SEND_NUMB,obj.value("send_numb").toString());
+    query.bindValue(SEND_VIEW,obj.value("send_view").toString());
+    query.bindValue(SEND_MODE,obj.value("send_mode").toString());
+    query.bindValue(SEND_CODE,obj.value("send_code").toString());
+    query.bindValue(SEND_PRCE,obj.value("send_prce").toString());
+    query.bindValue(SEND_MARK,obj.value("send_mark").toString());
+    query.exec();
+
+    send_obj.insert("sendto",obj.value("sender").toString());
+    send_obj.insert("logs_cmmd","erp_sends");
     send_obj.insert("logs_sign",0);
     sendJson(send_obj);
 }

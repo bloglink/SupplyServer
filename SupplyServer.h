@@ -28,6 +28,16 @@
 #define ORDER_LNUM 14
 #define ORDER_DNUM 15
 
+#define SEND_ID 0
+#define SEND_GUID 1
+#define SEND_SIGN 2
+#define SEND_NUMB 3
+#define SEND_VIEW 4
+#define SEND_MODE 5
+#define SEND_CODE 6
+#define SEND_PRCE 7
+#define SEND_MARK 8
+
 class SupplyServer : public QWidget
 {
     Q_OBJECT
@@ -47,6 +57,7 @@ private slots:
     void salesJson(QJsonObject obj);
     void custsJson(QJsonObject obj);
     void orderJson(QJsonObject obj);
+    void sendsJson(QJsonObject obj);
     void prodsJson(QJsonObject obj);
 private:
     Snowflake id;
