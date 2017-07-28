@@ -3,10 +3,15 @@
 
 #include <QFile>
 #include <QWidget>
+#include <QSqlError>
 #include <QSqlQuery>
 #include <QSqlDatabase>
 #include <QJsonObject>
 #include <QJsonDocument>
+
+#include <QLayout>
+#include <QTableView>
+#include <QSqlTableModel>
 
 #include "UdpSocket.h"
 #include "Snowflake.h"
@@ -38,6 +43,22 @@
 #define SEND_PRCE 7
 #define SEND_MARK 8
 
+#define PROD_ID 0
+#define PROD_GUID 1
+#define PROD_SIGN 2
+#define PROD_NUMB 3 //订单编号
+#define PROD_DATE 4 //订单日期
+#define PROD_VIEW 5 //评审编号
+#define PROD_CUST 6 //客户名称
+#define PROD_DEAD 7 //交货日期
+#define PROD_QUAN 8 //在产数量
+#define PROD_PNUM 9 //生产单号
+#define PROD_TYPE 10//产品大类
+#define PROD_CODE 11//产品编号
+#define PROD_NAME 12//产品名称
+#define PROD_MODE 13//产品规格
+#define PROD_MNUM 14//仪表编号
+
 class SupplyServer : public QWidget
 {
     Q_OBJECT
@@ -50,6 +71,7 @@ public:
 private slots:
     void initUdp();
     void initSql();
+    void initUI();
     void recvNetJson(QJsonObject obj);
     void loginJson(QJsonObject obj);
     void rolesJson(QJsonObject obj);
