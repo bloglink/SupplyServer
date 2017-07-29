@@ -43,21 +43,16 @@
 #define SEND_PRCE 7
 #define SEND_MARK 8
 
-#define PROD_ID 0
-#define PROD_GUID 1
-#define PROD_SIGN 2
-#define PROD_NUMB 3 //订单编号
-#define PROD_DATE 4 //订单日期
-#define PROD_VIEW 5 //评审编号
-#define PROD_CUST 6 //客户名称
-#define PROD_DEAD 7 //交货日期
-#define PROD_QUAN 8 //在产数量
-#define PROD_PNUM 9 //生产单号
-#define PROD_TYPE 10//产品大类
-#define PROD_CODE 11//产品编号
-#define PROD_NAME 12//产品名称
-#define PROD_MODE 13//产品规格
-#define PROD_MNUM 14//仪表编号
+#define PROD_UUID 0x00 //生产ID
+#define PROD_GUID 0x01 //操作ID
+#define PROD_SIGN 0x02 //操作标识
+#define PROD_NUMB 0x03 //生产单号
+#define PROD_QUAN 0x04 //生产数量
+#define PROD_TYPE 0x05 //产品大类
+#define PROD_CODE 0x06 //产品编号
+#define PROD_NAME 0x07 //产品名称
+#define PROD_MODE 0x08 //产品规格
+#define PROD_MNUM 0x09 //仪表编号
 
 class SupplyServer : public QWidget
 {
@@ -72,14 +67,27 @@ private slots:
     void initUdp();
     void initSql();
     void initUI();
+    void createTabRoles(qint64 uuid);
+    void excuteCmdRoles(QJsonObject obj);
+    void createTabUsers(qint64 uuid);
+    void excuteCmdUsers(QJsonObject obj);
+    void createTabSales(qint64 uuid);
+    void excuteCmdSales(QJsonObject obj);
+    void createTabCusts(qint64 uuid);
+    void excuteCmdCusts(QJsonObject obj);
+    void createTabOrder(qint64 uuid);
+    void createTabSends(qint64 uuid);
+    void createTabProds(qint64 uuid);
+    void createTabPurch(qint64 uuid);
     void recvNetJson(QJsonObject obj);
-    void loginJson(QJsonObject obj);
-    void rolesJson(QJsonObject obj);
-    void usersJson(QJsonObject obj);
-    void salesJson(QJsonObject obj);
-    void custsJson(QJsonObject obj);
+    void excuteCmdLogin(QJsonObject obj);
+
+
+
+
     void orderJson(QJsonObject obj);
     void sendsJson(QJsonObject obj);
+    void plansJson(QJsonObject obj);
     void prodsJson(QJsonObject obj);
 private:
     Snowflake id;
