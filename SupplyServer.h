@@ -76,7 +76,9 @@ private slots:
     void createTabCusts(qint64 uuid);
     void excuteCmdCusts(QJsonObject obj);
     void createTabOrder(qint64 uuid);
+    void excuteCmdOrder(QJsonObject obj);
     void createTabSends(qint64 uuid);
+    void excuteCmdSends(QJsonObject obj);
     void createTabProds(qint64 uuid);
     void createTabPurch(qint64 uuid);
     void recvNetJson(QJsonObject obj);
